@@ -12,7 +12,28 @@ func main() {
 		fmt.Print("Pokedex > ")
 		newScanner.Scan()
 		var userPrompt = newScanner.Text()
-		var cleanedPrompt = cleanInput(userPrompt)
-		fmt.Printf("Your command was: %s \n", cleanedPrompt[0])
+		var command = cleanInput(userPrompt)
+		cmd, exists := commandMap[command[0]]
+		if exists == true {
+			err := cmd.callback()
+			if err != nil {
+				fmt.Printf("Error occured: %v\n", err)
+				return
+			}
+			continue
+		} else {
+			fmt.Print("Unknown command\n")
+			continue
+		}
 	}
+}
+
+func commandExit() error {
+	fmt.Print("Closing the Pokedex... Goodbye!\n")
+	os.Exit(0)
+	return nil
+}
+func commandHelp() error {
+	fmt.Print("Welcome to the Pokedex! \n Usage: \n help: Displays a help message \n exit: Exit the Pokedex \n")
+	return nil
 }
