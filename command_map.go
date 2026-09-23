@@ -6,8 +6,8 @@ import (
 	"github.com/Tobias1006/pokedexcli/internal/pokeapi"
 )
 
-func commandMap(c *config) error {
-	locationData, err := pokeapi.GetLocationAreas(c.next)
+func commandMap(c *config, params ...string) error {
+	locationData, err := pokeapi.GetLocationAreas(c.next, c.cache)
 	if err != nil {
 		return err
 	}

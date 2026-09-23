@@ -22,12 +22,20 @@ func repl(c *config) {
 		var command = cleanInput(userPrompt)
 		cmd, exists := cmdMap[command[0]]
 		if exists == true {
-			err := cmd.callback(c)
-			if err != nil {
-				fmt.Printf("Error occured: %v\n", err)
-				return
+			if len(command) > 1 {
+				area := command[1]
+				err := cmd.callback(c, area)
+				if err != nil {
+					fmt.Printf("Error occured: %v\n", err)
+					continue
+				}
+			} else {
+				err := cmd.callback(c)
+				if err != nil {
+					fmt.Printf("Error occured: %v\n", err)
+					continue
+				}
 			}
-			continue
 		} else {
 			fmt.Print("Unknown command\n")
 			continue

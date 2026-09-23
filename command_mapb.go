@@ -6,12 +6,12 @@ import (
 	"github.com/Tobias1006/pokedexcli/internal/pokeapi"
 )
 
-func commandMapB(c *config) error {
+func commandMapB(c *config, params ...string) error {
 	if c.previous == "" {
-		fmt.Print("you're on trhe first page \n")
+		fmt.Print("you're on the first page \n")
 		return nil
 	} else {
-		locationData, err := pokeapi.GetLocationAreas(c.previous)
+		locationData, err := pokeapi.GetLocationAreas(c.previous, c.cache)
 		if err != nil {
 			return err
 		}
