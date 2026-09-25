@@ -2,6 +2,7 @@ package pokeapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -20,6 +21,9 @@ func GetLocationAreas(url string, cache pokecache.Cache) (locationData, error) {
 		}
 	} else {
 		res, err := http.Get(url)
+		if res.StatusCode > 299 {
+			return emptyLocData, fmt.Errorf("Unsuccessful request.")
+		}
 		if err != nil {
 			return emptyLocData, err
 		}
@@ -35,28 +39,51 @@ func GetLocationAreas(url string, cache pokecache.Cache) (locationData, error) {
 }
 
 func GetPokemonInArea(area string, cache pokecache.Cache) (locationPokemonData, error) {
-	var emptyPokData locationPokemonData
-	var pokemonData locationPokemonData
+	var emptyLocPokData locationPokemonData
+	var locPokemonData locationPokemonData
 
 	var fullUrl = "https://pokeapi.co/api/v2/location-area/" + area
 	cachedVal, ok := cache.Get("pok", fullUrl)
 	if ok {
 		data := cachedVal
-		if err := json.Unmarshal(data, &pokemonData); err != nil {
-			return emptyPokData, err
+		if err := json.Unmarshal(data, &locPokemonData); err != nil {
+			return emptyLocPokData, err
 		}
 	} else {
 		res, err := http.Get(fullUrl)
+		if res.StatusCode > 299 {
+			return emptyLocPokData, fmt.Errorf("Unsuccessful request.")
+		}
 		if err != nil {
-			return emptyPokData, err
+			return emptyLocPokData, err
 		}
 		defer res.Body.Close()
 
 		byteSlice, err := io.ReadAll(res.Body)
-		if err := json.Unmarshal(byteSlice, &pokemonData); err != nil {
-			return emptyPokData, err
+		if err := json.Unmarshal(byteSlice, &locPokemonData); err != nil {
+			return emptyLocPokData, err
 		}
 		cache.Add("loc", fullUrl, byteSlice)
+	}
+	return locPokemonData, nil
+}
+
+func GetPokemonInfo(pokemon string) (PokemonData, error) {
+	var emptyPokData PokemonData
+	var pokemonData PokemonData
+
+	var fullUrl = "https://pokeapi.co/api/v2/pokemon/" + pokemon
+	res, err := http.Get(fullUrl)
+	if res.StatusCode > 299 {
+		return emptyPokData, fmt.Errorf("Unsuccessful request.")
+	}
+	if err != nil {
+		return emptyPokData, err
+	}
+	defer res.Body.Close()
+	byteSlice, err := io.ReadAll(res.Body)
+	if err := json.Unmarshal(byteSlice, &pokemonData); err != nil {
+		return emptyPokData, err
 	}
 	return pokemonData, nil
 }

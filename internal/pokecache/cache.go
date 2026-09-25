@@ -6,8 +6,8 @@ import (
 )
 
 type Cache struct {
-	cacheLocationEntries map[string]cacheEntry
-	cachePokemonEntries  map[string]cacheEntry
+	cacheLocation        map[string]cacheEntry
+	cacheLocationPokemon map[string]cacheEntry
 	mu                   sync.Mutex
 }
 type cacheEntry struct {
@@ -17,8 +17,8 @@ type cacheEntry struct {
 
 func NewCache(interval time.Duration) *Cache {
 	var cache Cache
-	cache.cacheLocationEntries = make(map[string]cacheEntry)
-	cache.cachePokemonEntries = make(map[string]cacheEntry)
+	cache.cacheLocation = make(map[string]cacheEntry)
+	cache.cacheLocationPokemon = make(map[string]cacheEntry)
 	go cache.reapLoop("loc", interval)
 	go cache.reapLoop("pok", interval)
 	return &cache
@@ -27,12 +27,12 @@ func NewCache(interval time.Duration) *Cache {
 func (c *Cache) Add(ent string, key string, val []byte) {
 	c.mu.Lock()
 	if ent == "loc" {
-		c.cacheLocationEntries[key] = cacheEntry{
+		c.cacheLocation[key] = cacheEntry{
 			time.Now(),
 			val,
 		}
 	} else if ent == "pok" {
-		c.cachePokemonEntries[key] = cacheEntry{
+		c.cacheLocationPokemon[key] = cacheEntry{
 			time.Now(),
 			val,
 		}
@@ -44,16 +44,17 @@ func (c *Cache) Get(ent string, key string) ([]byte, bool) {
 	c.mu.Lock()
 	var val []byte
 	var worked bool
-	if ent == "loc" {
-		entry, ok := c.cacheLocationEntries[key]
+	switch ent {
+	case "loc":
+		entry, ok := c.cacheLocation[key]
 		if !ok {
 			c.mu.Unlock()
 			return nil, ok
 		}
 		c.mu.Unlock()
 		val, worked = entry.val, ok
-	} else if ent == "pok" {
-		entry, ok := c.cachePokemonEntries[key]
+	case "pok":
+		entry, ok := c.cacheLocationPokemon[key]
 		if !ok {
 			c.mu.Unlock()
 			return nil, ok
@@ -68,18 +69,18 @@ func (c *Cache) reapLoop(ent string, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	for range ticker.C {
 		if ent == "loc" {
-			for key, entry := range c.cacheLocationEntries {
+			for key, entry := range c.cacheLocation {
 				if time.Since(entry.createdAt) > interval {
 					c.mu.Lock()
-					delete(c.cacheLocationEntries, key)
+					delete(c.cacheLocation, key)
 					c.mu.Unlock()
 				}
 			}
 		} else if ent == "pok" {
-			for key, entry := range c.cachePokemonEntries {
+			for key, entry := range c.cacheLocationPokemon {
 				if time.Since(entry.createdAt) > interval {
 					c.mu.Lock()
-					delete(c.cachePokemonEntries, key)
+					delete(c.cacheLocationPokemon, key)
 					c.mu.Unlock()
 				}
 			}

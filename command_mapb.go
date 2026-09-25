@@ -6,7 +6,7 @@ import (
 	"github.com/Tobias1006/pokedexcli/internal/pokeapi"
 )
 
-func commandMapB(c *config, params ...string) error {
+func commandMapB(c *config, params ...any) error {
 	if c.previous == "" {
 		fmt.Print("you're on the first page \n")
 		return nil
